@@ -16,6 +16,7 @@ IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 """
 import argparse
+import BeautifulSoup
 import daemon
 import logging
 import tornado.ioloop
@@ -24,17 +25,18 @@ import urllib2
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self, slug):
-      print slug
       img = "http://www.submitawebsite.com/blog/wp-content/uploads/2010/06/404.png"
       body = '<img src="http://www.submitawebsite.com/blog/wp-content/uploads/2010/06/404.png">'
       if slug == 'i':
-        img = self.get_argument("q")
         body = '<img src="%s">' % img
       else:
         url = "http://%s.jpg.to" % (slug)
         response = urllib2.urlopen(url)
         body = response.read()
-        img = body[body.find("src=\"")+5:body.find('"', body.find("src=\"")+7)]
+      try:
+        img = BeautifulSoup.BeautifulSoup(body).img['src']
+      except:
+        print "Bad img in %s" % body
       data = """<html>
                 <head>
                 <meta content="%s" property="og:image"/>
