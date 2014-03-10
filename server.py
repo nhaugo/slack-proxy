@@ -20,6 +20,7 @@ import BeautifulSoup
 import daemon
 import logging
 import tornado.ioloop
+import tornado.options
 import tornado.web
 import urllib2
 
@@ -50,7 +51,8 @@ class MainHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([ (r"/([^/]+)", MainHandler)])
 
-def start_server(port, debug):
+def start_server(port, debug, log_file):
+  tornado.options.parse_command_line()
   application.listen(port)
   tornado.ioloop.IOLoop.instance().start()
 
@@ -69,14 +71,15 @@ def setup():
 
 def main():
   port, debug, fg, log_file = setup()
-  log_fh = open(log_file, 'wa')
-  logging.basicConfig(filename=log_file)
+  print log_file
+  log_fh = open(log_file, 'a+')
+  #logging.basicConfig(filename=log_file)
   if fg:
     return start_server(port, debug)
   else:
     daemon_context = daemon.DaemonContext(stdout=log_fh, stderr=log_fh)
     with daemon_context:
-      return start_server(port, debug)
+      return start_server(port, debug, log_file)
 
 if __name__ == "__main__":
   main()
